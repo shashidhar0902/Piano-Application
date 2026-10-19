@@ -11,6 +11,8 @@ export type Drill = {
   notes: StaffNote[];
   /** Newly introduced pitches — they show up more often. */
   focus: StaffNote[];
+  /** Share of generated notes reserved for newly introduced pitches. */
+  focusWeight?: number;
   keys: KeyId[];
   /** How many notes before the key signature changes. */
   keyEvery: number;
@@ -58,6 +60,7 @@ function fixedDrill(
     title,
     notes: notes(clef, positions),
     focus: notes(clef, focus),
+    focusWeight: focus.length > 0 ? 0.65 : 0,
     keys,
     keyEvery,
     clefMode: "fixed",
