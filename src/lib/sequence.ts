@@ -14,6 +14,7 @@ export type SequenceItem = NoteItem | ChangeItem;
 function pickPosition(
   pool: number[],
   focus: number[],
+  focusWeight: number,
   clef: Clef,
   key: KeyId,
   rng: () => number,
@@ -24,8 +25,8 @@ function pickPosition(
     key === "C" ? [] : pool.filter((position) => accidentalFor(letterAt(clef, position), key) !== "natural");
   const roll = rng();
   let source = pool;
-  if (focus.length > 0 && roll < 0.5) source = focus;
-  else if (altered.length > 0 && roll < 0.8) source = altered;
+  if (focus.length > 0 && roll < focusWeight) source = focus;
+  else if (altered.length > 0 && roll < focusWeight + 0.15) source = altered;
   const choose = (items: number[]) => items[Math.floor(rng() * items.length)] ?? items[0];
   let position = choose(source);
   if (pool.length > 1 && last === `${clef}:${position}`) {
@@ -68,7 +69,7 @@ export function buildSequence(drill: Drill, rng: () => number = Math.random): Se
 
     const pool = drill.notes.filter((note) => note.clef === clef).map((note) => note.position);
     const focus = drill.focus.filter((note) => note.clef === clef).map((note) => note.position);
-    const position = pickPosition(pool, focus, clef, key, rng, last);
+    const position = pickPosition(pool, focus, drill.focusWeight ?? (focus.length > 0 ? 0.65 : 0), clef, key, rng, last);
     last = `${clef}:${position}`;
 
     const prev = [...items].reverse().find((item) => item.kind === "note");
