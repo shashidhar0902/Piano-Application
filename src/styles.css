@@ -1,0 +1,176 @@
+@import "tailwindcss";
+@import "@fontsource/fraunces/latin-500.css";
+@import "@fontsource/fraunces/latin-500-italic.css";
+@import "@fontsource/fraunces/latin-600.css";
+@import "@fontsource/outfit/latin-400.css";
+@import "@fontsource/outfit/latin-500.css";
+@import "@fontsource/outfit/latin-600.css";
+
+@theme {
+  --font-sans: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", Palatino, serif;
+  --color-bg: #efe6d6;
+  --color-paper: #fbf6ee;
+  --color-ink: #221c16;
+  --color-muted: #74685b;
+  --color-line: #3a322a;
+  --color-accent: #b6402a;
+  --radius-sheet: 1.25rem;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-ink);
+    line-height: 1.5;
+    min-height: 100%;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+}
+
+.sheet {
+  background: var(--color-paper);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
+  border-radius: var(--radius-sheet);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 5%, transparent),
+    0 22px 40px -28px color-mix(in srgb, var(--color-ink) 55%, transparent);
+}
+
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.tap {
+  transition: scale 150ms ease-out;
+}
+
+.tap:active:not(:disabled) {
+  scale: 0.96;
+}
+
+.btn-ink {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.btn-ink:disabled {
+  opacity: 0.4;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+}
+
+.ring-key {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: 1.5px solid color-mix(in srgb, var(--color-ink) 20%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent),
+    0 10px 18px -14px color-mix(in srgb, var(--color-ink) 70%, transparent);
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.ring-key.inner {
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-paper));
+}
+
+.ring-key:disabled {
+  opacity: 0.38;
+}
+
+.ring-key.is-wrong {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  animation: key-shake 280ms ease-in-out;
+}
+
+.ring-key.is-hint {
+  border-color: var(--color-accent);
+  animation: hint-pulse 1s ease-in-out infinite;
+}
+
+.note-scroll {
+  transition: transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.notes-mask {
+  mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 90%, transparent 100%);
+}
+
+@keyframes key-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-4px);
+  }
+  70% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes hint-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-accent) 24%, transparent);
+  }
+}
+
+@keyframes clef-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.clef-in {
+  animation: clef-in 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-scroll,
+  .clef-in,
+  .tap {
+    transition: none;
+    animation: none;
+  }
+
+  .ring-key.is-hint,
+  .ring-key.is-wrong {
+    animation: none;
+  }
+}

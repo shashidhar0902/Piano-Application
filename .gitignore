@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.tanstack/
+.grok/app-env.json
+.grok/status/
+.dev-server.log
+
+screenshots/*
+!screenshots/.gitkeep
+
+artifacts/*
