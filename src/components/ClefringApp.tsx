@@ -54,7 +54,7 @@ export function ClefringApp() {
         <div>
           <div className="flex items-center gap-3">
             <Logo />
-            <p className="text-sm tracking-wide text-muted">Level 1 · Treble and bass</p>
+            <p className="text-sm tracking-wide text-muted">Levels 1–3 · Seven clefs</p>
           </div>
           <h1 className="mt-3 font-display text-4xl leading-tight font-medium text-ink sm:text-5xl">
             Read the staff.

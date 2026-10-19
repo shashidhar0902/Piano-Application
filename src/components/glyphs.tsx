@@ -5,6 +5,7 @@ const TREBLE_D =
 
 const TREBLE = { w: 15.186, h: 40.768, anchorX: 8.55, anchorY: 24.6 };
 const BASS = { w: 17.45, h: 20.15, anchorX: 16.02, anchorY: 6.065, dotGap: 5.843 };
+const C_CLEF = { w: 20, anchorX: 10, anchorY: 0 };
 
 const BASS_DOT_A =
   "M 17.305 3.142 C 17.313 3.512 17.156 3.881 16.874 4.122 C 16.514 4.451 15.965 4.518 15.516 4.351 C 15.071 4.179 14.742 3.739 14.717 3.261 C 14.683 2.887 14.802 2.495 15.073 2.229 C 15.328 1.957 15.708 1.824 16.077 1.847 C 16.457 1.855 16.823 2.046 17.05 2.35 C 17.225 2.575 17.308 2.86 17.305 3.142 z";
@@ -21,6 +22,14 @@ export function clefMetrics(clef: Clef, gap: number) {
       left: TREBLE.anchorX * scale,
       right: (TREBLE.w - TREBLE.anchorX) * scale,
       refPosition: 2,
+    };
+  }
+  if (clef !== "bass") {
+    return {
+      scale: gap / 8,
+      left: gap * 0.7,
+      right: gap * 0.7,
+      refPosition: { soprano: 0, mezzo: 2, alto: 4, tenor: 6, baritone: 8 }[clef],
     };
   }
   const scale = gap / BASS.dotGap;
@@ -48,6 +57,24 @@ export function ClefGlyph({
     return (
       <g transform={`translate(${x} ${yRef}) scale(${metrics.scale}) translate(${-TREBLE.anchorX} ${-TREBLE.anchorY})`}>
         <path d={TREBLE_D} fill="var(--color-ink)" />
+      </g>
+    );
+  }
+  if (clef !== "bass") {
+    return (
+      <g transform={`translate(${x - gap * 0.7} ${yRef - gap * 1.4})`}>
+        <text
+          x={gap * 0.7}
+          y={gap * 1.4}
+          textAnchor="middle"
+          fontFamily="Georgia, serif"
+          fontSize={gap * 2.8}
+          fontWeight="700"
+          fill="var(--color-ink)"
+        >
+          C
+        </text>
+        <rect x={gap * 0.52} y={gap * 0.25} width={gap * 0.36} height={gap * 2.3} rx={gap * 0.12} fill="var(--color-ink)" />
       </g>
     );
   }

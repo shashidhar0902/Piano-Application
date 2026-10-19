@@ -18,6 +18,10 @@ export type Drill = {
   clef?: Clef;
   /** How many notes before the clef flips, when clefMode is groups. */
   clefGroup: number;
+  /** Optional cycle used by mixed-clef drills. */
+  clefOrder?: Clef[];
+  /** Choose a clef independently for each note. */
+  randomClef?: boolean;
 };
 
 export type Chapter = {
@@ -161,6 +165,58 @@ function mixed(
     keyEvery,
     clefMode: "groups",
     clefGroup,
+  };
+}
+
+function clefLadder(chapter: string, clef: Clef, anchor: number): Drill[] {
+  const steps = [
+    { add: [anchor, anchor + 4], title: "Anchor C and G above it" },
+    { add: [anchor - 2], title: "F below the anchor" },
+    { add: [anchor + 2], title: "A above the anchor" },
+    { add: [anchor - 4], title: "E below the anchor" },
+    { add: [anchor + 6], title: "B above the anchor" },
+    { add: [anchor - 6], title: "D below the anchor" },
+  ];
+  const learned: number[] = [];
+  const drills = steps.map((step, index) => {
+    learned.push(...step.add);
+    return fixedDrill(`${chapter}.${index + 1}`, step.title, clef, [...learned], step.add);
+  });
+  drills.push(
+    fixedDrill(`${chapter}.7`, "All previous notes plus the remaining staff", clef, span(0, 8), []),
+    fixedDrill(`${chapter}.8`, "Full staff mixed", clef, span(0, 8), []),
+  );
+  return drills;
+}
+
+function cClefKeyChapter(chapter: string, clef: Clef): Drill[] {
+  const keys: KeyId[] = ["G", "D", "A", "F", "Bb", "Eb"];
+  return [
+    ...keys.map((key, index) =>
+      fixedDrill(`${chapter}.${index + 1}`, `${key} major · key signature`, clef, span(0, 8), [], [key]),
+    ),
+    fixedDrill(`${chapter}.7`, "Mixed key signatures", clef, span(0, 8), [], keys, 8),
+  ];
+}
+
+function mixedClefs(
+  code: string,
+  title: string,
+  clefOrder: Clef[],
+  positions: number[],
+  keyEvery = NOTES_PER_DRILL,
+): Drill {
+  return {
+    id: code,
+    code,
+    title,
+    notes: clefOrder.flatMap((clef) => notes(clef, positions)),
+    focus: [],
+    keys: ["C"],
+    keyEvery,
+    clefMode: "groups",
+    clefGroup: 1,
+    clefOrder,
   };
 }
 
@@ -310,6 +366,179 @@ export const chapters: Chapter[] = [
         KEY_STEPS.map((step) => step.id),
         8,
       ),
+    ],
+  },
+  {
+    id: "2.1",
+    code: "2.1",
+    kicker: "Alto clef",
+    title: "Part one",
+    summary: "C on the middle line, then the neighboring notes in a careful ladder.",
+    drills: clefLadder("2.1", "alto", 4),
+  },
+  {
+    id: "2.2",
+    code: "2.2",
+    kicker: "Alto clef",
+    title: "Part two",
+    summary: "Ledger lines above and below the alto staff.",
+    drills: [
+      fixedDrill("2.2.1", "One ledger line above", "alto", span(0, 10), [10]),
+      fixedDrill("2.2.2", "One ledger line below", "alto", span(-2, 8), [-2]),
+      fixedDrill("2.2.3", "Two ledger lines both ways", "alto", span(-4, 12), [-4, 12]),
+      fixedDrill("2.2.4", "Alto staff and ledger lines mixed", "alto", span(-4, 12), []),
+    ],
+  },
+  {
+    id: "2.3",
+    code: "2.3",
+    kicker: "Alto clef",
+    title: "Key signatures",
+    summary: "Read the same signatures from the center of the alto staff.",
+    drills: cClefKeyChapter("2.3", "alto"),
+  },
+  {
+    id: "2.4",
+    code: "2.4",
+    kicker: "Tenor clef",
+    title: "Part one",
+    summary: "C on the fourth line, introduced one neighboring note at a time.",
+    drills: clefLadder("2.4", "tenor", 6),
+  },
+  {
+    id: "2.5",
+    code: "2.5",
+    kicker: "Tenor clef",
+    title: "Part two",
+    summary: "Extend tenor reading beyond the staff.",
+    drills: [
+      fixedDrill("2.5.1", "One ledger line above", "tenor", span(0, 10), [10]),
+      fixedDrill("2.5.2", "One ledger line below", "tenor", span(-2, 8), [-2]),
+      fixedDrill("2.5.3", "Two ledger lines both ways", "tenor", span(-4, 12), [-4, 12]),
+      fixedDrill("2.5.4", "Tenor staff and ledger lines mixed", "tenor", span(-4, 12), []),
+    ],
+  },
+  {
+    id: "2.6",
+    code: "2.6",
+    kicker: "Tenor clef",
+    title: "Key signatures",
+    summary: "Make tenor clef fluent across changing signatures.",
+    drills: cClefKeyChapter("2.6", "tenor"),
+  },
+  {
+    id: "2.7",
+    code: "2.7",
+    kicker: "C-clefs",
+    title: "Alto and tenor",
+    summary: "Switch between the two C-clefs before adding the familiar clefs back in.",
+    drills: [
+      mixedClefs("2.7.1", "Alto and tenor, four notes each", ["alto", "tenor"], span(0, 8), 4),
+      mixedClefs("2.7.2", "Alto and tenor, every note", ["alto", "tenor"], span(0, 8)),
+    ],
+  },
+  {
+    id: "2.8",
+    code: "2.8",
+    kicker: "Four clefs",
+    title: "Full Level 2 mix",
+    summary: "Treble, bass, alto, and tenor in one reading line.",
+    drills: [
+      mixedClefs("2.8.1", "Four clefs, four notes each", ["treble", "bass", "alto", "tenor"], span(0, 8), 4),
+      mixedClefs("2.8.2", "Four clefs, every note", ["treble", "bass", "alto", "tenor"], span(-2, 10)),
+      {
+        ...mixedClefs("2.8.3", "Four clefs and changing keys", ["treble", "bass", "alto", "tenor"], span(-4, 12), 8),
+        keys: ["C", "G", "F", "Bb"],
+      },
+    ],
+  },
+  {
+    id: "3.1",
+    code: "3.1",
+    kicker: "Soprano clef",
+    title: "C on the first line",
+    summary: "Build soprano clef recognition from its anchor note outward.",
+    drills: clefLadder("3.1", "soprano", 0),
+  },
+  {
+    id: "3.2",
+    code: "3.2",
+    kicker: "Mezzo-soprano clef",
+    title: "C on the second line",
+    summary: "A second C-clef position, learned without skipping the basics.",
+    drills: clefLadder("3.2", "mezzo", 2),
+  },
+  {
+    id: "3.3",
+    code: "3.3",
+    kicker: "Baritone clef",
+    title: "C on the fifth line",
+    summary: "The high C-clef position used for baritone writing.",
+    drills: clefLadder("3.3", "baritone", 8),
+  },
+  {
+    id: "3.4",
+    code: "3.4",
+    kicker: "Rare C-clefs",
+    title: "Soprano, mezzo, baritone",
+    summary: "Switch among the three less familiar C-clef positions.",
+    drills: [
+      mixedClefs("3.4.1", "Three C-clefs, four notes each", ["soprano", "mezzo", "baritone"], span(0, 8), 4),
+      mixedClefs("3.4.2", "Three C-clefs, every note", ["soprano", "mezzo", "baritone"], span(-2, 10)),
+    ],
+  },
+  {
+    id: "3.5",
+    code: "3.5",
+    kicker: "All seven clefs",
+    title: "Basic fluency",
+    summary: "Every standard clef, with a focused range before the final challenges.",
+    drills: [
+      mixedClefs("3.5.1", "Seven clefs, four notes each", ["treble", "bass", "alto", "tenor", "soprano", "mezzo", "baritone"], span(0, 8), 4),
+      mixedClefs("3.5.2", "Seven clefs, every note", ["treble", "bass", "alto", "tenor", "soprano", "mezzo", "baritone"], span(-2, 10)),
+    ],
+  },
+  {
+    id: "3.6",
+    code: "3.6",
+    kicker: "All seven clefs",
+    title: "Advanced fluency",
+    summary: "Ledger lines and signatures across the complete clef family.",
+    drills: [
+      {
+        ...mixedClefs("3.6.1", "Seven clefs with ledger lines", ["treble", "bass", "alto", "tenor", "soprano", "mezzo", "baritone"], span(-4, 12), 4),
+        keys: ["C", "G", "F", "Bb", "D"],
+      },
+      {
+        ...mixedClefs("3.6.2", "All signatures and ledger lines", ["treble", "bass", "alto", "tenor", "soprano", "mezzo", "baritone"], span(-6, 14), 4),
+        keys: ["C", "G", "D", "A", "F", "Bb", "Eb"],
+      },
+    ],
+  },
+  {
+    id: "3.7",
+    code: "3.7",
+    kicker: "Challenge",
+    title: "Speed and accuracy",
+    summary: "A new clef on every note. Read the symbol first, then the pitch.",
+    drills: [
+      {
+        ...mixedClefs("3.7.1", "Random clef every note", ["treble", "bass", "alto", "tenor", "soprano", "mezzo", "baritone"], span(-4, 12)),
+        randomClef: true,
+      },
+    ],
+  },
+  {
+    id: "3.8",
+    code: "3.8",
+    kicker: "Final boss",
+    title: "The complete reader",
+    summary: "Full range, all seven clefs, every supported key signature.",
+    drills: [
+      {
+        ...mixedClefs("3.8.1", "Full range, all clefs, all keys", ["treble", "bass", "alto", "tenor", "soprano", "mezzo", "baritone"], span(-10, 18), 1),
+        keys: ["C", "G", "D", "A", "E", "F", "Bb", "Eb", "Ab"],
+      },
     ],
   },
 ];

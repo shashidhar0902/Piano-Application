@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "description", content: "Train reading piano notes on the treble and bass staff." },
+      { name: "description", content: "Train reading piano notes across all seven standard clefs." },
       { name: "theme-color", content: "#efe6d6" },
     ],
     links: [

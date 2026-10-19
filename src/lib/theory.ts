@@ -1,6 +1,6 @@
 export const LETTERS = ["C", "D", "E", "F", "G", "A", "B"] as const;
 export type Letter = (typeof LETTERS)[number];
-export type Clef = "treble" | "bass";
+export type Clef = "treble" | "bass" | "soprano" | "mezzo" | "alto" | "tenor" | "baritone";
 export type Accidental = "natural" | "sharp" | "flat";
 export type KeyId = "C" | "G" | "D" | "A" | "E" | "F" | "Bb" | "Eb" | "Ab";
 
@@ -31,7 +31,7 @@ export const KEYS: Record<KeyId, KeyInfo> = {
  * 0 is the bottom line; +1 is the space above it.
  * Matches standard engraving (bass is the treble signature shifted down a line).
  */
-export const SIG_POS: Record<Clef, { sharp: number[]; flat: number[] }> = {
+const TREBLE_SIG_POS = {
   treble: {
     sharp: [8, 5, 9, 6, 3, 7, 4],
     flat: [4, 7, 3, 6, 2, 5, 1],
@@ -40,13 +40,39 @@ export const SIG_POS: Record<Clef, { sharp: number[]; flat: number[] }> = {
     sharp: [6, 3, 7, 4, 1, 5, 2],
     flat: [2, 5, 1, 4, 0, 3, -1],
   },
+} satisfies Record<"treble" | "bass", { sharp: number[]; flat: number[] }>;
+
+const C_CLEF_ANCHOR: Record<Exclude<Clef, "treble" | "bass">, number> = {
+  soprano: 0,
+  mezzo: 2,
+  alto: 4,
+  tenor: 6,
+  baritone: 8,
 };
+
+export const SIG_POS: Record<Clef, { sharp: number[]; flat: number[] }> = {
+  ...TREBLE_SIG_POS,
+  ...Object.fromEntries(
+    Object.entries(C_CLEF_ANCHOR).map(([clef, anchor]) => [
+      clef,
+      {
+        sharp: TREBLE_SIG_POS.treble.sharp.map((position) => position + anchor - 2),
+        flat: TREBLE_SIG_POS.treble.flat.map((position) => position + anchor - 2),
+      },
+    ]),
+  ),
+} as Record<Clef, { sharp: number[]; flat: number[] }>;
 
 const TREBLE_FROM_BOTTOM = ["E", "F", "G", "A", "B", "C", "D"] as const;
 const BASS_FROM_BOTTOM = ["G", "A", "B", "C", "D", "E", "F"] as const;
+const C_FROM_BOTTOM = ["C", "D", "E", "F", "G", "A", "B"] as const;
 const SEMI: Record<Letter, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
 export function letterAt(clef: Clef, position: number): Letter {
+  if (clef in C_CLEF_ANCHOR) {
+    const anchor = C_CLEF_ANCHOR[clef as Exclude<Clef, "treble" | "bass">];
+    return C_FROM_BOTTOM[((position - anchor) % 7 + 7) % 7] as Letter;
+  }
   const scale = clef === "treble" ? TREBLE_FROM_BOTTOM : BASS_FROM_BOTTOM;
   const idx = ((position % 7) + 7) % 7;
   return scale[idx];
@@ -54,7 +80,10 @@ export function letterAt(clef: Clef, position: number): Letter {
 
 export function octaveAt(clef: Clef, position: number): number {
   if (clef === "treble") return 4 + Math.floor((position + 2) / 7);
-  return 2 + Math.floor((position + 4) / 7);
+  if (clef === "bass") return 2 + Math.floor((position + 4) / 7);
+  const anchor = C_CLEF_ANCHOR[clef];
+  const base = clef === "baritone" ? 3 : 4;
+  return base + Math.floor((position - anchor) / 7);
 }
 
 export function accidentalFor(letter: Letter, key: KeyId): Accidental {

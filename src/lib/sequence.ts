@@ -37,7 +37,9 @@ function pickPosition(
 
 export function buildSequence(drill: Drill, rng: () => number = Math.random): SequenceItem[] {
   const items: SequenceItem[] = [];
-  let clef: Clef = drill.clefMode === "fixed" ? (drill.clef ?? "treble") : "treble";
+  let clef: Clef =
+    drill.clefMode === "fixed" ? (drill.clef ?? "treble") : (drill.clefOrder?.[0] ?? "treble");
+  let clefIndex = 0;
   let keyIndex = 0;
   let key = drill.keys[keyIndex] ?? "C";
   let inGroup = 0;
@@ -46,7 +48,16 @@ export function buildSequence(drill: Drill, rng: () => number = Math.random): Se
 
   for (let n = 0; n < NOTES_PER_DRILL; n++) {
     if (drill.clefMode === "groups" && inGroup >= drill.clefGroup) {
-      clef = clef === "treble" ? "bass" : "treble";
+      if (drill.randomClef && drill.clefOrder && drill.clefOrder.length > 0) {
+        const previous = clef;
+        const options = drill.clefOrder.filter((candidate) => candidate !== previous);
+        clef = options[Math.floor(rng() * options.length)] ?? previous;
+      } else if (drill.clefOrder && drill.clefOrder.length > 0) {
+        clefIndex = (clefIndex + 1) % drill.clefOrder.length;
+        clef = drill.clefOrder[clefIndex] ?? clef;
+      } else {
+        clef = clef === "treble" ? "bass" : "treble";
+      }
       inGroup = 0;
     }
     if (inKey >= drill.keyEvery && drill.keys.length > 1) {
