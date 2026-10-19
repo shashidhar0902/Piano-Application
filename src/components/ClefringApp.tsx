@@ -1,3 +1,5 @@
+import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ClefGlyph } from "@/components/glyphs";
@@ -16,6 +18,25 @@ export function ClefringApp() {
   useEffect(() => {
     setProgress(loadProgress());
   }, []);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let active = true;
+    const listener = App.addListener("backButton", () => {
+      if (!active) return;
+      if (confirmReset) {
+        setConfirmReset(false);
+      } else if (drillId) {
+        setDrillId(null);
+      } else {
+        App.exitApp();
+      }
+    });
+    return () => {
+      active = false;
+      void listener.then((handle) => handle.remove());
+    };
+  }, [confirmReset, drillId]);
 
   const next = useMemo(() => {
     const drills = allDrills();

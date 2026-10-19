@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .tanstack/
+.vercel/
 .grok/app-env.json
 .grok/status/
 .dev-server.log
@@ -9,3 +10,11 @@ screenshots/*
 !screenshots/.gitkeep
 
 artifacts/*
+
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+mobile-web/
